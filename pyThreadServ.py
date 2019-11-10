@@ -1,53 +1,79 @@
 # _*_ coding: utf-8 _*_
-# Python program to implement server side of chat room. 
-import socket 
-import select 
+# Python program to implement server side of chat room.
+import socket
+import select
 import sys
+
+
 from thread import *
 
 # create a socket "s" that is an AF_INET (internet socket)
 # and uses SOCK_STREAM (TCP)
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-#s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
-  
- 
-port = int(sys.argv[1])  
-s.bind(('', port)) 
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-s.listen(20) 
 
-clnt_online = [] 
-clnt =None 
+port = int(sys.argv[1])
+server_socket.bind(('', port))
 
-def clientthread(clnt, ap):
-    clnt.sendall("Welcome to this chatroom!")
+server_socket.listen(20)
+
+client_socket_list = []
+
+def clientthread(client_socket, client_address):
+    client_socket.send("Welcome to this chatroom!")
     while True:
         try:
-            message = clnt.recv(1024)
+            # received message from client socket
+            message = client_socket.recv(1024)
             if message:
-                print "<" + ap[0] + "> " + message
-                message_to_send = "<" + ap[0] + "> " + message
-                for clients in clnt_online:
-                    if clients!=ap:
-                        try:
-                            clients.send(message)
-                        except:
-                            clients.close()
-                            remove(clients) 
+                print("<" + client_address[0] + "> " + message)
+                send_status = send_to_server(message,client_socket)
+                if send_status==False:
+                    print("Failed to send message from "+ client_address[0])
 
+            else:
+
+                # remove connection if no message
+                remove(client_socket)
         except: continue
-        
-while True:
-	
-    clnt, ap = s.accept()
-    clnt_online.append(clnt)
-  
-      # prints the address of the user that just connected 
-    print ap[0] + " connected"
-	
-    start_new_thread(clientthread,(clnt,ap))
 
-clnt.close()
-s.close()
-  
-  
+
+def send_to_server(message,client_socket):
+    for clients in client_socket_list:
+        if clients!=client_socket:
+            try:
+                clients.send(message)
+                return True
+            except:
+                remove(clients)
+                return False
+
+def remove(client_socket):
+    for client in client_socket_list:
+        if client == client_socket:
+            # remove client from the list
+            client_socket_list.remove(client_socket)
+            # close the connection
+            client_socket.close()
+
+
+
+
+
+
+
+while True:
+    client_socket, client_address = server_socket.accept()
+    client_socket_list.append(client_socket)
+    # prints the address of the user that just connected
+    print(client_address[0] + " connected")
+    a = start_new_thread(clientthread,(client_socket,client_address))
+
+
+
+
+client.close()
+server_socket.close()
+
+
