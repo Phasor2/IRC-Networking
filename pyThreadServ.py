@@ -3,76 +3,93 @@
 import socket
 import select
 import sys
+
 from thread import *
 
 # create a socket "s" that is an AF_INET (internet socket)
 # and uses SOCK_STREAM (TCP)
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
 
 port = int(sys.argv[1])
-s.bind(('', port))
+server_socket.bind(('', port))
 
-s.listen(20)
+server_socket.listen(20)
 
-clnt_online = []
-room = []
-clnt = None
+client_socket_list = []
+username_list = []
+BUFFER_SIZE = 2048
+username = None
 
 
-def clientthread(clnt, ap):
-    clnt.sendall("Welcome to this chatroom!")
+def clientthread(client_socket, client_address):
+    client_socket.send("Welcome to this chatroom! \nPlease enter your username: ")
+
+    username = client_socket.recv(BUFFER_SIZE)
+    valid_name = naming_for_client(username, client_socket)
+    while not valid_name:
+        try:
+            username = client_socket.recv(BUFFER_SIZE)
+            valid_name = naming_for_client(username, client_socket)
+        except:
+            continue
+
     while True:
         try:
-            message = clnt.recv(1024)
-
-            # split message into diffrent fields
-            parsed = message.split("~")
-
+            # received message from client socket
+            message = client_socket.recv(BUFFER_SIZE)
             if message:
+                message = "<" + username.rstrip() + "> " + message
+                print(message)
+                send_to_client(message, client_socket)
 
-                # Parse username and message
-                print "<" + parsed[0] + "> " + parsed[1]
-
-                ap = parsed[0];
-                print("name of ap: ", ap)
-                # append username to message being sent
-                message_to_send = "<" + parsed[0] + "> " + parsed[1]
-
-                # Check to see if private message char found
-                if ":" in parced[1]:
-                    user_select = parsed[1].split
-                    print user_select
-
-                send_to_chat(message_to_send)
-
+            else:
+                # remove connection if no message
+                remove(username,client_socket)
         except:
             continue
 
 
-def create_a_room(clnt):
+def naming_for_client(username, client_socket):
+    username_list_len = len(username_list)
+    for i in range(username_list_len):
+        if username == username_list[i]:
+            client_socket.send("Please try a different name : ")
+            return False
+
+    username_list.append(username)
+    return True
 
 
-def send_to_chat(message_to_send):
-    for clients in clnt_online:
-        if clients != ap:
+def send_to_client(message, client_socket):
+    for clients in client_socket_list:
+        if clients != client_socket:
             try:
-                clients.send(message_to_send)
+                clients.send(message)
             except:
-                clients.close()
                 remove(clients)
 
 
+
+def remove(username,client_socket):
+    for name in username_list:
+        if name == username:
+            username_list.remove(username)
+    for client in client_socket_list:
+        if client == client_socket:
+            # remove client from the list
+            client_socket_list.remove(client_socket)
+            # close the connection
+            client_socket.close()
+
+
 while True:
-    clnt, ap = s.accept()
-    clnt_online.append(clnt)
-
+    client_socket, client_address = server_socket.accept()
+    client_socket_list.append(client_socket)
     # prints the address of the user that just connected
-    print ap[0] + " connected"
+    print(client_address[0] + " connected")
+    start_new_thread(clientthread, (client_socket, client_address))
 
-    start_new_thread(clientthread, (clnt, ap))
-
-clnt.close()
-s.close()
-
+client.close()
+server_socket.close()
