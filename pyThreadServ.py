@@ -18,6 +18,14 @@ server_socket.bind(('', port))
 server_socket.listen(20)
 
 client_socket_list = []
+
+
+# Actual room
+room_list = []
+
+# List contain names for rooms
+roomname_list = []
+
 username_list = []
 BUFFER_SIZE = 2048
 username = None
@@ -27,8 +35,17 @@ p_username = None
 def clientthread(client_socket, client_address):
     client_socket.send("Welcome to this chatroom! \nPlease enter your username: ")
 
+
+    # Receive client first name
     username = client_socket.recv(BUFFER_SIZE)
-    valid_name = naming_for_client(username, client_socket)
+
+    valid_name = False
+
+    if username:
+        valid_name = naming_for_client(username, client_socket)
+    else:
+        remove(username,client_socket,client_address)
+
     while not valid_name:
         try:
             username = client_socket.recv(BUFFER_SIZE)
@@ -50,7 +67,6 @@ def clientthread(client_socket, client_address):
 
                 #PRIVATE MESSAGE
                 if "#p" in message:
-                    print "test private"
                     message = message.split("#p")
                     p_msg = message[1]
                     private_msg(p_msg, client_socket)
@@ -59,6 +75,18 @@ def clientthread(client_socket, client_address):
 
 
                 #CREATE ROOM
+                elif "#cr:" in message:
+                    roomname = message.split("#cr:")
+
+                    # cast the actual roomname
+                    roomname = roomname[1][:-1]
+                    if roomname =='':
+                        client_socket.send('Invalid room name')
+                    else:
+                        if create_room(roomname,username):
+                            client_socket.send('Room "'+roomname+'" created. You have joined room '+roomname)
+                        else:
+                            client_socket.send("Can't create room. The room's name already exists")
 
 
 
@@ -83,7 +111,7 @@ def clientthread(client_socket, client_address):
 
             else:
                 # remove connection if no message
-                remove(username,client_socket)
+                remove(username,client_socket,client_address)
         except:
             continue
 
@@ -129,13 +157,29 @@ def private_msg(p_msg, client_socket):
     i=0
     for name in username_list:
         if name == p_username:
-            client_socket_list[i].send(username_list[j]+':'+msg)
+            client_socket_list[i].send('(private)'+username_list[j]+':'+msg)
         i+=1
 
 
+def create_room(roomname,username):
+    roomname_list_len = len(roomname_list)
+    roomname=roomname
+    for i in range(roomname_list_len):
+        if roomname == roomname_list[i]:
+            return False
 
+    #adding room name in the list
+    roomname_list.append(roomname)
+    #adding client into the room list
+    room_list.append([username])
+    return True
 
-def remove(username,client_socket):
+def remove(username,client_socket,client_address):
+    if username:
+        print('<'+username[:-1]+'>'+' disconnected')
+    else:
+        print(str(client_address)+' disconnected')
+
     for name in username_list:
         if name == username:
             username_list.remove(username)
@@ -151,7 +195,7 @@ while True:
     client_socket, client_address = server_socket.accept()
     client_socket_list.append(client_socket)
     # prints the address of the user that just connected
-    print(client_address[0] + " connected")
+    print(str(client_address) + " connected")
     start_new_thread(clientthread, (client_socket, client_address))
 
 client.close()
