@@ -21,6 +21,7 @@ client_socket_list = []
 username_list = []
 BUFFER_SIZE = 2048
 username = None
+p_username = None
 
 
 def clientthread(client_socket, client_address):
@@ -40,9 +41,45 @@ def clientthread(client_socket, client_address):
             # received message from client socket
             message = client_socket.recv(BUFFER_SIZE)
             if message:
-                message = "<" + username.rstrip() + "> " + message
-                print(message)
-                send_to_client(message, client_socket)
+
+
+
+
+            # FUNCTIONAL MESSAGE FOR CLIENT
+
+
+                #PRIVATE MESSAGE
+                if "#p" in message:
+                    print "test private"
+                    message = message.split("#p")
+                    p_msg = message[1]
+                    private_msg(p_msg, client_socket)
+
+
+
+
+                #CREATE ROOM
+
+
+
+                #SELECT ROOM
+
+
+
+
+                #LEAVE ROOM
+
+
+
+
+
+
+
+                # THIS BROADCAST ALL
+                else:
+                   message = "<" + username.rstrip() + "> " + message
+                   send_to_client(message, client_socket)
+
 
             else:
                 # remove connection if no message
@@ -58,7 +95,7 @@ def naming_for_client(username, client_socket):
             client_socket.send("Please try a different name : ")
             return False
 
-    username_list.append(username)
+    username_list.append(username[:-1])
     return True
 
 
@@ -69,6 +106,32 @@ def send_to_client(message, client_socket):
                 clients.send(message)
             except:
                 remove(clients)
+
+def private_msg(p_msg, client_socket):
+    # p_msg contain the client destination and client_socket is the sender
+    # in this case we need to find the client destination to send
+    # and client socket to find username who send it
+    p_msg = p_msg.split(":")
+    print p_msg[0]
+    p_username = p_msg[0]
+    msg = p_msg[1]
+    print msg
+
+
+    # get the username sender from the client list
+    j=0
+    for client in client_socket_list:
+        if client == client_socket:
+            break
+        j+=1
+
+    # get the client socket for destination from socket list
+    i=0
+    for name in username_list:
+        if name == p_username:
+            client_socket_list[i].send(username_list[j]+':'+msg)
+        i+=1
+
 
 
 
