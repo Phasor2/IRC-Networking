@@ -21,7 +21,12 @@ try:
         for socks in read_sockets:
             if socks == server:
                 message = socks.recv(2048)
-                print message
+                if message =='':
+                    #disconnect from server
+                    print('Connection closed by server')
+                    sys,exit()
+                else:
+                    print message
             else:
                 message = sys.stdin.readline()
                 server.send(message)

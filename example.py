@@ -7,27 +7,42 @@
 #     print('\ni:'+str(i))
 #     print(username_list[i])
 
-ROOM_SIZE = 10
-room_size_reserve = []*ROOM_SIZE
+#===============================================
+# ROOM_SIZE = 10
+# room_size_reserve = []*ROOM_SIZE
+#
+# room_size_reserve2 = []*ROOM_SIZE
+#
+# name = 'phong'
+#
+# second_name = 'linh'
+#
+# third_name = 'bon'
+#
+# room_list = []
+#
+# room_list.append([name])
+#
+# room_list.append([second_name])
+#
+# room_list[0].append(third_name)
+#
+# #room_list[0].append(second_name)
+#
+# #room_list[1].append(third_name)
+#
+# print(room_list)
+#===================================================
 
-room_size_reserve2 = []*ROOM_SIZE
+# lst =['phong','linh','bon','bi']
+# if 'bi' not in lst:
+#     lst.append('bon')
+# else:
+#     print('bi is in list')
+#
+# print lst
 
-name = 'phong'
-
-second_name = 'linh'
-
-third_name = 'bon'
-
-room_list = []
-
-room_list.append([name])
-
-room_list.append([second_name])
-
-room_list[0].append(third_name)
-
-#room_list[0].append(second_name)
-
-#room_list[1].append(third_name)
-
-print(room_list)
+#=========================================================
+lst =['phong','linh','bon','bi']
+if 'bon' in lst:
+    print lst.index('bon')
