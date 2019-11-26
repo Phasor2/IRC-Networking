@@ -202,7 +202,7 @@ def clientthread(client_socket, client_address):
             continue
 
 
-# THINGS GET CRAZY FROM HERE PLEASE TAKE IT SLOW
+# Message to multiple rooms
 def msg_to_room(r_list,message,username,client_socket):
     for r_name in r_list:
         # if there is a match room name sending the message else room not found
