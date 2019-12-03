@@ -155,8 +155,8 @@ def clientthread(client_socket, client_address):
                             client_socket.send("Can't join room. The room's name does not exist")
 
                 #LIST MEMBERS IN THE ROOM
-                elif "#lsrm:" in message:
-                    roomname = message.split("#lsrm:")
+                elif "#lrm:" in message:
+                    roomname = message.split("#lrm:")
 
                     # cast the actual roomname
                     roomname = roomname[1][:-1]
